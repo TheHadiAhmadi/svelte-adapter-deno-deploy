@@ -10,6 +10,7 @@ interface AdapterOptions {
 		host?: string;
 		port?: string;
 	};
+	imports?: Record<string,string>;
 	esbuild?: (options: BuildOptions) => Promise<BuildOptions> | BuildOptions;
 	deps?: string;
 }

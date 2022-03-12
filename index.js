@@ -1,4 +1,5 @@
 import { createReadStream, createWriteStream, existsSync, statSync, writeFileSync } from 'fs';
+import replace from 'esbuild-plugin-text-replace';
 import { pipeline } from 'stream';
 import { fileURLToPath } from 'url';
 import { promisify } from 'util';
@@ -20,11 +21,12 @@ export default function ({
 	precompress,
 	serverFile,
 	env: { path: path_env = 'SOCKET_PATH', host: host_env = 'HOST', port: port_env = 'PORT' } = {},
+	imports = {},
 	esbuild: esbuildConfig,
 	deps = fileURLToPath(new URL('./deps.ts', import.meta.url))
 } = {}) {
 	return {
-		name: 'svelte-adapter-deno',
+		name: 'svelte-adapter-deno-deploy',
 
 		async adapt(builder) {
 			const tmp = builder.getBuildDirectory('deno');
@@ -36,17 +38,13 @@ export default function ({
 			builder.writeClient(`${out}/client`);
 			builder.writeServer(`${tmp}/server`);
 			builder.writeStatic(`${out}/static`);
-
-			builder.log.minor('Prerendering static pages');
-			const { paths } = await builder.prerender({
-				dest: `${out}/prerendered`
-			});
+			builder.writePrerendered(`${out}/prerendered`);
 
 			writeFileSync(
 				`${tmp}/manifest.js`,
 				`export const manifest = ${builder.generateManifest({
 					relativePath: './server'
-				})};\n\nexport const prerendered = new Set(${JSON.stringify(paths)});\n`
+				})};\n\nexport const prerendered = new Set(${JSON.stringify(builder.prerendered.paths)});\n`
 			);
 
 			builder.log.minor(`Copying deps.ts: ${deps}`);
@@ -62,18 +60,32 @@ export default function ({
 				}
 			});
 
-			if(!serverFile) {
-				builder.copy(`${files}/server.js`, `${out}/server.js`)
+			if (!serverFile) {
+				builder.copy(`${files}/server.js`, `${out}/server.js`);
 			} else {
-				builder.log(`${out}/handler.js exports default handler which accepts Request and returns Promise<Response>`)
+				builder.log(
+					`${out}/handler.js exports default handler which accepts Request and returns Promise<Response>`
+				);
 			}
+
+			/** @type {any} */
+			const importReplaces = [];
+
+			Object.entries(imports).map(([key, value]) => {
+				importReplaces.push([`"${key}"`, `"${value}"`]); // Temporary solution (should use import_maps)
+			});
 
 			/** @type {BuildOptions} */
 			const defaultOptions = {
 				entryPoints: [`${tmp}/handler.js`],
 				outfile: `${out}/handler.js`,
 				bundle: true,
-				// external: Object.keys(JSON.parse(readFileSync('package.json', 'utf8')).dependencies || {}),
+				plugins: [
+					replace({
+						pattern: importReplaces
+					})
+				],
+				external: Object.keys(imports),
 				format: 'esm',
 				platform: 'browser',
 				// platform: 'neutral',
