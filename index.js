@@ -18,6 +18,7 @@ const files = fileURLToPath(new URL('./files', import.meta.url));
 /** @type {import('.')} */
 export default function ({
 	out = 'build',
+	filesPrefix = 'build',
 	precompress,
 	serverFile,
 	env: { path: path_env = 'SOCKET_PATH', host: host_env = 'HOST', port: port_env = 'PORT' } = {},
@@ -56,7 +57,7 @@ export default function ({
 				replace: {
 					SERVER: './server/index.js',
 					MANIFEST: './manifest.js',
-					FILES_PREFIX: `./${out}`
+					FILES_PREFIX: filesPrefix
 				}
 			});
 

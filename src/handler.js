@@ -1,8 +1,7 @@
-import { dirname, fromFileUrl, serveFile, join} from './deps.ts';
+import { dirname, fromFileUrl, serveFile, join } from './deps.ts';
 
 // to prevent an error
-window.navigator.userAgent = []
-
+window.navigator.userAgent = [];
 
 import { Server } from 'SERVER';
 import { manifest, prerendered } from 'MANIFEST';
@@ -13,16 +12,16 @@ const server = new Server(manifest);
 const prefix = `/${manifest.appDir}/`;
 
 /**
- * 
+ *
  * @param {Request} request original request object
  * @returns {Promise<Response>}
  */
 export default async function handler(request, platform = {}) {
 	// generated assets
-	const url = new URL(request.url)
+	const url = new URL(request.url);
 	if (url.pathname.startsWith(prefix)) {
-		const response = await serveFile(request, join('FILES_PREFIX', 'client', url.pathname))
-		response.headers.append('cache-control', 'public, immutable, max-age=31536000')
+		const response = await serveFile(request, join('FILES_PREFIX', 'client', url.pathname));
+		response.headers.append('cache-control', 'public, immutable, max-age=31536000');
 		return response;
 	}
 
@@ -47,11 +46,11 @@ export default async function handler(request, platform = {}) {
 		return await serveFile(request, join('FILES_PREFIX', 'prerendered', file));
 	}
 
-	const rendered = await server.respond(request, { platform } );
+	const rendered = await server.respond(request, { platform });
 
 	if (rendered) {
-		return rendered
+		return rendered;
 	} else {
-		return new Response('Not found', {status: 404})
+		return new Response('Not found', { status: 404 });
 	}
 }

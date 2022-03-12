@@ -3,14 +3,15 @@ import { BuildOptions } from 'esbuild';
 
 interface AdapterOptions {
 	out?: string;
+	filesPrefix?: string;
 	precompress?: boolean;
-	serverFile?: string,
+	serverFile?: string;
 	env?: {
 		path?: string;
 		host?: string;
 		port?: string;
 	};
-	imports?: Record<string,string>;
+	imports?: Record<string, string>;
 	esbuild?: (options: BuildOptions) => Promise<BuildOptions> | BuildOptions;
 	deps?: string;
 }
