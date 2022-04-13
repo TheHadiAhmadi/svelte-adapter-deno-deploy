@@ -83,6 +83,7 @@ export default function ({
 				bundle: true,
 				plugins: [
 					replace({
+						include: /\*handler.js$/,
 						pattern: importReplaces
 					})
 				],
