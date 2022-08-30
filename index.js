@@ -38,7 +38,6 @@ export default function ({
 			builder.log.minor('Copying assets');
 			builder.writeClient(`${out}/client`);
 			builder.writeServer(`${tmp}/server`);
-			builder.writeStatic(`${out}/static`);
 			builder.writePrerendered(`${out}/prerendered`);
 
 			writeFileSync(
